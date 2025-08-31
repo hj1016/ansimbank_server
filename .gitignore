@@ -1,26 +1,69 @@
-# Default ignored files
-/shelf/
-/workspace.xml
+# =========================
+# Gradle & Build
+# =========================
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# =========================
+# Spring Boot
+# =========================
+*.jar
+*.war
+
+# =========================
+# IDE & Editor
+# =========================
+# IntelliJ IDEA
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+shelf/
+workspace.xml
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
 # Editor-based HTTP Client requests
 /httpRequests/
+
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-# OS
+
+# =========================
+# OS & Logs
+# =========================
 .DS_Store
-
-# IntelliJ IDEA
-.idea/
-*.iml
-
-# Build outputs
-/target/
-/build/
-/.gradle/
-
-# Logs
 *.log
 
-# Spring Boot
-*.jar
-*.war
+# =========================
+# Custom
+# =========================
+src/main/resources/application.properties
+src/main/resources/application.yml
