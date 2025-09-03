@@ -12,10 +12,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/ws-stomp/**").permitAll() // 핸드셰이크는 인터셉터에서 인증
+                .requestMatchers("/ws-stomp/**").permitAll()       // ✅ WebSocket 허용
+                .requestMatchers("/stomp-test.html").permitAll()   // ✅ 테스트 페이지 허용
+                .requestMatchers("/api/demo/**").permitAll()       // ✅ Demo API 허용 (테스트용)
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults());
+            .formLogin(form -> form.disable())   // ✅ 기본 로그인폼 꺼버리기
+            .httpBasic(basic -> basic.disable()); // ✅ BasicAuth 팝업 꺼버리기
         return http.build();
     }
 }
+
