@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8" />
+<h3>STOMP /user 테스트</h3>
+<button id="connect">Connect (uid:1)</button>
+<button id="connect2">Connect (uid:2)</button>
+<button id="sub">Subscribe /user/queue/test</button>
+<pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+  let client;
+  const log = (m) => (document.getElementById('log').textContent += m + '\n');
+
+  function connect(uid) {
+    const socket = new SockJS('/ws-stomp?access_token=uid:' + uid);
+    client = Stomp.over(socket);   // ✅ 여기서 StompJs.Client 대신 Stomp.over 사용
+    client.debug = null; // 콘솔 로그 끄기
+
+    client.connect({}, () => {
+      log('connected as uid:' + uid);
+    }, (err) => log('stomp error: ' + err));
+  }
+
+  document.getElementById('connect').onclick = () => connect(1);
+  document.getElementById('connect2').onclick = () => connect(2);
+
+  document.getElementById('sub').onclick = () => {
+    client.subscribe('/user/queue/test', (msg) => log('RECV: ' + msg.body));
+    log('subscribed /user/queue/test');
+  };
+</script>
