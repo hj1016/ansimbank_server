@@ -1,32 +1,127 @@
 <!doctype html>
 <meta charset="utf-8" />
-<h3>STOMP /user 테스트</h3>
-<button id="connect">Connect (uid:1)</button>
-<button id="connect2">Connect (uid:2)</button>
-<button id="sub">Subscribe /user/queue/test</button>
+<title>Approval 테스트</title>
+<style>
+  body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 24px; }
+  h3 { margin: 0 0 12px; }
+  button { margin: 4px 6px 8px 0; }
+  fieldset { margin-top: 10px; padding: 10px 14px; }
+  #log { background:#111; color:#0f0; padding:10px; min-height:160px; white-space:pre-wrap; }
+  input { padding: 4px 6px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+</style>
+
+<h3>STOMP Approval 테스트</h3>
+
+<!-- 연결 -->
+<fieldset>
+  <legend>1) 연결</legend>
+  <button onclick="connect(1)">부모 연결 (uid:1)</button>
+  <button onclick="connect(2)">자녀 연결 (uid:2)</button>
+</fieldset>
+
+<!-- 구독 -->
+<fieldset>
+  <legend>2) 구독</legend>
+  <button onclick="subscribeParent()">부모 구독 /user/queue/approvals</button>
+  <button onclick="subscribeChild()">자녀 구독 /user/queue/approval-result</button>
+</fieldset>
+
+<!-- 자녀 요청 -->
+<fieldset>
+  <legend>3) 자녀 → 승인요청 publish (/app/approval.request)</legend>
+  <label>parentId: <input id="parentId" type="number" value="1" class="mono"></label>
+  <label>amount: <input id="amount" type="number" value="50000" class="mono"></label>
+  <label>memo: <input id="memo" type="text" value="테스트" class="mono"></label>
+  <button onclick="sendApprovalRequest()">자녀 → 승인요청</button>
+</fieldset>
+
+<!-- 부모 결정 -->
+<fieldset>
+  <legend>4) 부모 → 승인결정 publish (/app/approval.decide)</legend>
+  <div>최근 수신 approvalId: <span id="lastId" class="mono" style="font-weight:700">-</span></div>
+  <button id="approveBtn" onclick="sendApprovalDecision(true)" disabled>부모 → 승인</button>
+  <button id="rejectBtn"  onclick="sendApprovalDecision(false)" disabled>부모 → 거절</button>
+</fieldset>
+
+<h4>로그</h4>
 <pre id="log"></pre>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script>
-  let client;
-  const log = (m) => (document.getElementById('log').textContent += m + '\n');
+  // uid별 STOMP 클라이언트 보관
+  const clients = {};
+  let lastApprovalId = null;
 
-  function connect(uid) {
-    const socket = new SockJS('/ws-stomp?access_token=uid:' + uid);
-    client = Stomp.over(socket);   // ✅ 여기서 StompJs.Client 대신 Stomp.over 사용
-    client.debug = null; // 콘솔 로그 끄기
+  const log = (m) => {
+    const el = document.getElementById('log');
+    el.textContent += m + '\n';
+    el.scrollTop = el.scrollHeight;
+  };
 
-    client.connect({}, () => {
-      log('connected as uid:' + uid);
-    }, (err) => log('stomp error: ' + err));
+  function guard(cond, msg) {
+    if (!cond) { log('⚠️ ' + msg); return false; }
+    return true;
   }
 
-  document.getElementById('connect').onclick = () => connect(1);
-  document.getElementById('connect2').onclick = () => connect(2);
+  // 1) 연결
+  function connect(uid) {
+    const socket = new SockJS('/ws-stomp?access_token=uid:' + uid); // 같은 오리진(8080)에 파일 배치 권장
+    const client = Stomp.over(socket);
+    client.debug = null; // 필요 시 주석 해제
+    client.connect({}, () => {
+      clients[uid] = client;
+      log(`✅ connected as uid:${uid}`);
+    }, err => log('❌ stomp error: ' + err));
+  }
 
-  document.getElementById('sub').onclick = () => {
-    client.subscribe('/user/queue/test', (msg) => log('RECV: ' + msg.body));
-    log('subscribed /user/queue/test');
-  };
+  // 2) 구독
+  function subscribeParent() {
+    if (!guard(clients[1], '부모(uid:1) 먼저 연결하세요')) return;
+    clients[1].subscribe('/user/queue/approvals', msg => {
+      log('[부모 수신] ' + msg.body);
+      try {
+        const data = JSON.parse(msg.body);
+        if (data.approvalId != null) {
+          lastApprovalId = data.approvalId;
+          document.getElementById('lastId').textContent = String(lastApprovalId);
+          // 버튼 활성화
+          document.getElementById('approveBtn').disabled = false;
+          document.getElementById('rejectBtn').disabled  = false;
+        }
+      } catch (_) { /* 문자열이면 무시 */ }
+    });
+    log('📡 parent subscribed /user/queue/approvals');
+  }
+
+  function subscribeChild() {
+    if (!guard(clients[2], '자녀(uid:2) 먼저 연결하세요')) return;
+    clients[2].subscribe('/user/queue/approval-result', msg => {
+      log('[자녀 수신] ' + msg.body);
+    });
+    log('📡 child subscribed /user/queue/approval-result');
+  }
+
+  // 3) 자녀 → 승인요청
+  function sendApprovalRequest() {
+    if (!guard(clients[2], '자녀(uid:2) 먼저 연결하세요')) return;
+    const payload = {
+      parentId: Number(document.getElementById('parentId').value || 1),
+      amount:   Number(document.getElementById('amount').value || 0),
+      memo:     String(document.getElementById('memo').value || '')
+    };
+    clients[2].send('/app/approval.request', {}, JSON.stringify(payload));
+    log('➡️ [자녀 전송] /app/approval.request ' + JSON.stringify(payload));
+  }
+
+  // 4) 부모 → 승인결정
+  function sendApprovalDecision(approve) {
+    if (!guard(clients[1], '부모(uid:1) 먼저 연결하세요')) return;
+    if (!guard(lastApprovalId, 'approvalId가 아직 없습니다. (부모 구독으로 수신 후 시도)')) return;
+
+    const payload = { approvalId: lastApprovalId, decision: approve ? 'APPROVE' : 'REJECT' };
+    clients[1].send('/app/approval.decide', {}, JSON.stringify(payload));
+    log(`➡️ [부모 전송] /app/approval.decide ${JSON.stringify(payload)}`);
+  }
 </script>
