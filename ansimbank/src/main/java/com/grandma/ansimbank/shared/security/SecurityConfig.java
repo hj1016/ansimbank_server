@@ -6,7 +6,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
+// TODO: JWT 도입 시 @Configuration 주석 해제
+//@Configuration
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -22,4 +23,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
