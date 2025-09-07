@@ -8,7 +8,11 @@ public enum ErrorCode {
     FORBIDDEN("E40300", "권한이 없습니다.", HttpStatus.FORBIDDEN),
     NOT_FOUND("E40400", "리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     CONFLICT("E40900", "상태 충돌이 발생했습니다.", HttpStatus.CONFLICT),
-    INTERNAL_SERVER_ERROR("E50000", "서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_SERVER_ERROR("E50000", "서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    INVALID_COMMAND("V001", "죄송합니다, 무슨 말씀이신지 잘 모르겠어요.", HttpStatus.BAD_REQUEST),
+    TARGET_NOT_FOUND("V002", "누구에게 송금할지 말씀해주세요.", HttpStatus.BAD_REQUEST),
+    AMOUNT_NOT_FOUND("V003", "송금할 금액을 말씀해주세요.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String msg;

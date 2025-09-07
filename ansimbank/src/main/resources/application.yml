@@ -1,8 +1,14 @@
+server:
+  port: 8080
+
 spring:
+  application:
+    name: ansimbank-server
+
   datasource:
     url: jdbc:mysql://localhost:3306/ansimbank?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: root
-    password: 12345678
+    password: 1234
     # driver-class-name: com.mysql.cj.jdbc.Driver   # 생략 가능 (자동 감지)
   jpa:
     hibernate:
@@ -13,6 +19,13 @@ spring:
         format_sql: true
   # 필요시 로깅
   # jpa.show-sql: true
-
-server:
-  port: 8080
+        dialect: org.hibernate.dialect.MySQL8Dialect
+clova:
+  stt:
+    url: https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor
+    clientId:  ${CLOVA_STT_CLIENT_ID}
+    clientSecret: ${CLOVA_STT_SECRET}
+  tts:
+    url: https://naveropenapi.apigw.ntruss.com/tts-premium/v1/tts
+    clientId: ${CLOVA_STT_CLIENT_ID}
+    clientSecret: ${CLOVA_STT_SECRET}
