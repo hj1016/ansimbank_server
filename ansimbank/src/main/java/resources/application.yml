@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ansimbank-server
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/ansimbank?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+# JWT 설정 수정 (더 긴 시크릿 키)
+app:
+  jwtSecret: aB3dF6gH9jK2mN5pQ8rT1uV4wX7yZ0cE3fH6iK9lN2oP5sT8vY1zA4dG7jM0pS3vY6bE9hK2nQ5tW8zA1dG4jM7p
+  jwtExpirationMs: 86400000
+
+clova:
+  stt:
+    url: https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor
+    clientId:  ${CLOVA_STT_CLIENT_ID}
+    clientSecret: ${CLOVA_STT_SECRET}
+  tts:
+    url: https://naveropenapi.apigw.ntruss.com/tts-premium/v1/tts
+    clientId: ${CLOVA_STT_CLIENT_ID}
+    clientSecret: ${CLOVA_STT_SECRET}
