@@ -23,6 +23,7 @@ configurations {
 repositories {
 	mavenCentral()
 	maven { url 'https://jitpack.io' }
+	maven { url 'https://repo1.maven.org/maven2' }
 }
 
 dependencies {
@@ -47,6 +48,9 @@ dependencies {
     // FCM (Firebase Cloud Messaging)
     implementation 'com.google.firebase:firebase-admin:9.4.1'
 
+    // HTTP Client for external API calls
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

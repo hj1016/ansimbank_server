@@ -44,6 +44,12 @@ public class Account {
     @Column(name = "is_primary")
     private Boolean isPrimary = false;
     
+    @Column(name = "connected_id")
+    private String connectedId; // CODEF ConnectedId (CODEF 방식에서만 사용)
+    
+    @Column(name = "link_type")
+    private String linkType; // "MANUAL" 또는 "CODEF"
+    
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

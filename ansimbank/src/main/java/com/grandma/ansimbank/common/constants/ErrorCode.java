@@ -27,6 +27,7 @@ public enum ErrorCode {
     DELEGATION_LIMIT_EXCEEDED("E40009", "위임장 한도를 초과했습니다.", HttpStatus.BAD_REQUEST),
     ACCOUNT_LINK_LIMIT_EXCEEDED("E40010", "계좌 연동 한도를 초과했습니다.", HttpStatus.BAD_REQUEST),
     PRIMARY_ACCOUNT_REQUIRED("E40011", "주계좌 설정이 필요합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST_DATA("E40012", "요청 데이터가 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
     
     // 403 Forbidden - 송금 및 계좌 권한
     UNAUTHORIZED_ACCOUNT("E40301", "계좌 사용 권한이 없습니다.", HttpStatus.FORBIDDEN),

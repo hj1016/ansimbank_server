@@ -1,5 +1,6 @@
 package com.grandma.ansimbank.fcm.entity;
 
+import com.grandma.ansimbank.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

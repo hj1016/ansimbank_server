@@ -10,7 +10,7 @@ import org.springframework.core.io.Resource;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 
-@Configuration
+//@Configuration  // Firebase 설정 파일이 없어서 임시로 비활성화
 public class FirebaseConfig {
 
     @Value("${firebase.service-account-key}")

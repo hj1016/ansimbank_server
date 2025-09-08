@@ -16,6 +16,9 @@ import java.util.List;
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
 @Slf4j
+// JWT 통합 후에는 @PreAuthorize 또는 Spring Security 설정으로 인증/권한 체크 필요
+// 현재: userId 파라미터로 사용자 식별
+// 변경 후: JWT 토큰에서 자동으로 사용자 정보 추출하여 보안성 강화
 public class AccountController {
     
     private final AccountService accountService;
@@ -38,12 +41,14 @@ public class AccountController {
     
     @PostMapping("/link")
     // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 userId 제거
+    // CODEF 연동 시 JWT의 사용자 정보와 실제 은행 계좌 소유자가 일치하는지 추가 검증 필요
     // public ResponseEntity<ApiCommonResponse<AccountResponseDTO>> linkAccount(
     //         @Valid @RequestBody AccountLinkRequestDTO request,
     //         Authentication authentication) {
     //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
     //     Long userId = userPrincipal.getUserId();
     //     // request에서 userId 제거하고 authenticatedUserId 사용
+    //     // JWT 사용자 이름과 CODEF에서 조회한 계좌 소유자 이름 비교 검증 로직 추가
     public ResponseEntity<ApiCommonResponse<AccountResponseDTO>> linkAccount(
             @Valid @RequestBody AccountLinkRequestDTO request) {
         
