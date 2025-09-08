@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -61,6 +62,10 @@ public class User {
     @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    // FCM 토큰과의 관계 (FCM 기능과 통합)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<com.grandma.ansimbank.fcm.entity.FcmToken> fcmTokens;
 
     public enum UserType {
         PARENT, CHILD
