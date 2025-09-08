@@ -44,6 +44,9 @@ dependencies {
     implementation 'org.json:json:20240303' // For JSON processing
     implementation 'com.github.shin285:KOMORAN:3.3.9' // For Korean NLP
 
+    // FCM (Firebase Cloud Messaging)
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
