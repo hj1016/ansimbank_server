@@ -36,8 +36,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.sender = :sender AND t.transactionStatus = 'COMPLETED' AND t.createdAt BETWEEN :startDate AND :endDate")
     BigDecimal calculateTotalAmountBySenderAndDateRange(@Param("sender") User sender, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
-    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.sender = :sender AND t.transactionStatus = 'COMPLETED' AND DATE(t.createdAt) = CURRENT_DATE")
-    long countTodayTransactionsBySender(@Param("sender") User sender);
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.sender = :sender AND t.transactionStatus = 'COMPLETED' AND t.createdAt >= :startOfDay AND t.createdAt < :endOfDay")
+    long countTodayTransactionsBySender(@Param("sender") User sender, @Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
     
     @Query("SELECT t FROM Transaction t WHERE t.receiverAccount = :accountNumber ORDER BY t.createdAt DESC")
     List<Transaction> findByReceiverAccountOrderByCreatedAtDesc(@Param("accountNumber") String accountNumber);

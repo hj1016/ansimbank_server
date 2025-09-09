@@ -44,7 +44,24 @@ public enum ErrorCode {
     ACCOUNT_ALREADY_LINKED("E40902", "이미 연동된 계좌입니다.", HttpStatus.CONFLICT),
     
     // 500 Internal Server Error - 송금 및 계좌 시스템
-    EXTERNAL_API_ERROR("E50001", "외부 API 호출 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    EXTERNAL_API_ERROR("E50001", "외부 API 호출 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // ===================================
+    // 가족 연동 에러 코드
+    // 400 Bad Request - 가족 연동 유효성 검증
+    INVALID_FAMILY_CONNECTION_REQUEST("E40013", "잘못된 가족 연동 요청입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_CONNECTION_STATUS("E40014", "유효하지 않은 연결 상태입니다.", HttpStatus.BAD_REQUEST),
+    
+    // 403 Forbidden - 가족 연동 권한
+    UNAUTHORIZED_FAMILY_CONNECTION("E40303", "가족 연동 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    
+    // 404 Not Found - 가족 연동 리소스
+    FAMILY_CONNECTION_NOT_FOUND("E40405", "가족 연동 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    
+    // 409 Conflict - 가족 연동 중복/상태
+    FAMILY_CONNECTION_ALREADY_EXISTS("E40903", "이미 연동된 가족입니다.", HttpStatus.CONFLICT),
+    FAMILY_CONNECTION_PENDING("E40904", "이미 요청 중인 가족 연동이 있습니다.", HttpStatus.CONFLICT),
+    FAMILY_CONNECTION_ALREADY_PROCESSED("E40905", "이미 처리된 가족 연동 요청입니다.", HttpStatus.CONFLICT);
     // ===================================
 
     private final String code;
