@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ansimbank?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: root
-    password: KHJtpsk1016!
+    password: password
     # driver-class-name: com.mysql.cj.jdbc.Driver   # 생략 가능 (자동 감지)
   jpa:
     hibernate:
@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
   # 필요시 로깅
   # jpa.show-sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
 clova:
   stt:
     url: https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor
