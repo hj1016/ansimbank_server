@@ -2,7 +2,7 @@ package com.grandma.ansimbank.config;
 
 import com.grandma.ansimbank.fcm.entity.FamilyConnection;
 import com.grandma.ansimbank.user.User;
-import com.grandma.ansimbank.fcm.repository.FamilyConnectionRepository;
+import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

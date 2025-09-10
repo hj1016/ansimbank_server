@@ -2,13 +2,13 @@ package com.grandma.ansimbank.auth.service;
 
 import com.grandma.ansimbank.auth.dto.*;
 import com.grandma.ansimbank.common.constants.ConnectionStatus;
-import com.grandma.ansimbank.common.constants.UserType;
+// UserType은 User.UserType으로 사용
 import com.grandma.ansimbank.common.security.jwt.JwtUtil;
 import com.grandma.ansimbank.common.security.services.CustomUserDetailsService;
 import com.grandma.ansimbank.common.security.services.UserPrincipal;
-import com.grandma.ansimbank.user.entity.User;
+import com.grandma.ansimbank.user.User;
 import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
-import com.grandma.ansimbank.user.repository.UserRepository;
+import com.grandma.ansimbank.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -70,8 +70,8 @@ public class AuthService {
 
             // 부모-자녀 관계 검증
             User target = targetUser.get();
-            if ((signUpRequest.getUserType() == UserType.CHILD && target.getUserType() != UserType.PARENT) ||
-                    (signUpRequest.getUserType() == UserType.PARENT && target.getUserType() != UserType.CHILD)) {
+            if ((signUpRequest.getUserType() == User.UserType.CHILD && target.getUserType() != User.UserType.PARENT) ||
+                    (signUpRequest.getUserType() == User.UserType.PARENT && target.getUserType() != User.UserType.CHILD)) {
                 return ResponseEntity.badRequest()
                         .body(new MessageResponse("잘못된 가족 관계입니다. 부모는 자녀에게, 자녀는 부모에게만 연동 요청할 수 있습니다."));
             }

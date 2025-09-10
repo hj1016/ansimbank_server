@@ -1,6 +1,6 @@
 package com.grandma.ansimbank.auth.dto;
 
-import com.grandma.ansimbank.common.constants.UserType;
+import com.grandma.ansimbank.user.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,5 +18,5 @@ public class LoginRequest {
     private String password;
 
     @NotNull(message = "계정 유형을 선택해주세요")
-    private UserType userType;
+    private User.UserType userType;
 }

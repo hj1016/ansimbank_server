@@ -6,7 +6,7 @@ import com.grandma.ansimbank.fcm.dto.FcmNotificationRequest;
 import com.grandma.ansimbank.fcm.entity.FamilyConnection;
 import com.grandma.ansimbank.fcm.entity.FcmToken;
 import com.grandma.ansimbank.user.User;
-import com.grandma.ansimbank.fcm.repository.FamilyConnectionRepository;
+import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.fcm.repository.FcmTokenRepository;
 import com.grandma.ansimbank.user.UserRepository;
 import com.grandma.ansimbank.fcm.template.FcmMessageTemplate;

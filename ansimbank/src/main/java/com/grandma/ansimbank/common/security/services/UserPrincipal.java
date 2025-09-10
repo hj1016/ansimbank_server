@@ -1,7 +1,7 @@
 package com.grandma.ansimbank.common.security.services;
 
-import com.grandma.ansimbank.common.constants.UserType;
-import com.grandma.ansimbank.user.entity.User;
+// UserType은 User.UserType으로 사용
+import com.grandma.ansimbank.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,10 +14,10 @@ public class UserPrincipal implements UserDetails {
     private Long id;
     private String username;
     private String password;
-    private UserType userType;
+    private User.UserType userType;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(Long id, String username, String password, UserType userType,
+    public UserPrincipal(Long id, String username, String password, User.UserType userType,
                          Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -81,7 +81,7 @@ public class UserPrincipal implements UserDetails {
         return id;
     }
 
-    public UserType getUserType() {
+    public User.UserType getUserType() {
         return userType;
     }
 }

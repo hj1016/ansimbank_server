@@ -1,8 +1,8 @@
 package com.grandma.ansimbank.common.security.services;
 
-import com.grandma.ansimbank.common.constants.UserType;
-import com.grandma.ansimbank.user.entity.User;
-import com.grandma.ansimbank.user.repository.UserRepository;
+// UserType은 User.UserType으로 사용
+import com.grandma.ansimbank.user.User;
+import com.grandma.ansimbank.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
     
     @Transactional
-    public UserDetails loadUserByUsernameAndType(String username, UserType userType) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsernameAndType(String username, User.UserType userType) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameAndUserType(username, userType)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
         

@@ -6,7 +6,7 @@ import com.grandma.ansimbank.family.dto.FamilyConnectionRequestDTO;
 import com.grandma.ansimbank.family.dto.FamilyConnectionResponseDTO;
 import com.grandma.ansimbank.family.dto.FamilyConnectionStatusUpdateDTO;
 import com.grandma.ansimbank.fcm.entity.FamilyConnection;
-import com.grandma.ansimbank.fcm.repository.FamilyConnectionRepository;
+import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.user.User;
 import com.grandma.ansimbank.user.UserRepository;
 import lombok.RequiredArgsConstructor;

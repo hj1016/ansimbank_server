@@ -1,6 +1,6 @@
 package com.grandma.ansimbank.auth.dto;
 
-import com.grandma.ansimbank.common.constants.UserType;
+import com.grandma.ansimbank.user.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,7 +26,7 @@ public class SignUpRequest {
     private String phoneNumber;
 
     @NotNull(message = "계정 유형을 선택해주세요")
-    private UserType userType;
+    private User.UserType userType;
 
     // 가족 연동 요청할 아이디 (선택사항)
     private String familyUsername;

@@ -1,5 +1,6 @@
 package com.grandma.ansimbank.user;
 
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,6 +63,16 @@ public class User {
     @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
+    
+    // AuthUser에서 가져온 필드들 (JWT 인증용)
+    @Column(unique = true)
+    private String username;
+    
+    // 가족 연동 관련 필드
+    private String requestedFamilyId; // 연동 요청한 부모/자녀 ID
+    
+    @Enumerated(EnumType.STRING)
+    private ConnectionStatus connectionStatus; // PENDING, APPROVED, REJECTED
 
     // FCM 토큰과의 관계 (FCM 기능과 통합)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -73,5 +84,22 @@ public class User {
 
     public enum SocialProvider {
         KAKAO, NAVER, NONE
+    }
+    
+    // AuthUser와 호환을 위한 getter 메소드
+    public Long getId() {
+        return this.userId;
+    }
+    
+    public void setId(Long id) {
+        this.userId = id;
+    }
+    
+    public String getPhoneNumber() {
+        return this.phone;
+    }
+    
+    public void setPhoneNumber(String phoneNumber) {
+        this.phone = phoneNumber;
     }
 }
