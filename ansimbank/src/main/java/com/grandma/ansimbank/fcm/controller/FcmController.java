@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/fcm")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173") // 이 줄 추가
 public class FcmController {
 
     /*
@@ -31,7 +32,7 @@ public class FcmController {
     @PostMapping("/token")
     public ResponseEntity<ApiCommonResponse<?>> registerToken(  // ← <?> 로 변경
                                                                 @Valid @RequestBody FcmTokenRequest request) {
-
+        System.out.println("FCM 토큰 등록 요청 받음: " + request.getUserId());
         try {
             log.info("FCM 토큰 등록 요청: userId={}", request.getUserId());
 
