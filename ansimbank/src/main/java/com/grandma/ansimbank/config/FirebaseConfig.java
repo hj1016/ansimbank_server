@@ -5,25 +5,30 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 
-//@Configuration  // Firebase 설정 파일이 없어서 임시로 비활성화
+@Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.service-account-key}")
-    private Resource serviceAccountKey;
-
     @PostConstruct
-    public void initialize() throws IOException {
-        if (FirebaseApp.getApps().isEmpty()) {
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccountKey.getInputStream()))
-                    .build();
+    public void initialize() {
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
+                ClassPathResource resource = new ClassPathResource("firebase-service-account-key.json");
 
-            FirebaseApp.initializeApp(options);
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
+                        .build();
+
+                FirebaseApp.initializeApp(options);
+                System.out.println("Firebase Admin SDK 초기화 완료");
+            }
+        } catch (IOException e) {
+            System.err.println("Firebase 초기화 실패: " + e.getMessage());
         }
     }
 }
