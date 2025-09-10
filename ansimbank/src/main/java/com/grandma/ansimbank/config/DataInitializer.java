@@ -4,6 +4,7 @@ import com.grandma.ansimbank.fcm.entity.FamilyConnection;
 import com.grandma.ansimbank.user.User;
 import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.user.UserRepository;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -86,7 +87,7 @@ public class DataInitializer implements ApplicationRunner {
         FamilyConnection approvedConnection = FamilyConnection.builder()
                 .parent(parent)
                 .child(child)
-                .connectionStatus(FamilyConnection.ConnectionStatus.APPROVED)
+                .connectionStatus(ConnectionStatus.APPROVED)
                 .build();
 
         familyConnectionRepository.save(approvedConnection);

@@ -1,6 +1,7 @@
 package com.grandma.ansimbank.family;
 
 import com.grandma.ansimbank.common.constants.ErrorCode;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import com.grandma.ansimbank.common.exception.CustomException;
 import com.grandma.ansimbank.family.dto.FamilyConnectionRequestDTO;
 import com.grandma.ansimbank.family.dto.FamilyConnectionResponseDTO;
@@ -34,7 +35,7 @@ public class FamilyService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
         List<FamilyConnection> connections = familyConnectionRepository
-                .findAllConnectionsByUserId(userId, FamilyConnection.ConnectionStatus.APPROVED);
+                .findAllConnectionsByUserId(userId, ConnectionStatus.APPROVED);
         
         return connections.stream()
                 .map(FamilyConnectionResponseDTO::from)
@@ -63,10 +64,10 @@ public class FamilyService {
         }
         
         if (existingConnection.isPresent()) {
-            FamilyConnection.ConnectionStatus status = existingConnection.get().getConnectionStatus();
-            if (status == FamilyConnection.ConnectionStatus.APPROVED) {
+            ConnectionStatus status = existingConnection.get().getConnectionStatus();
+            if (status == ConnectionStatus.APPROVED) {
                 throw new CustomException(ErrorCode.FAMILY_CONNECTION_ALREADY_EXISTS);
-            } else if (status == FamilyConnection.ConnectionStatus.PENDING) {
+            } else if (status == ConnectionStatus.PENDING) {
                 throw new CustomException(ErrorCode.FAMILY_CONNECTION_PENDING);
             }
         }
@@ -83,7 +84,7 @@ public class FamilyService {
         FamilyConnection connection = FamilyConnection.builder()
                 .parent(parent)
                 .child(child)
-                .connectionStatus(FamilyConnection.ConnectionStatus.PENDING)
+                .connectionStatus(ConnectionStatus.PENDING)
                 .build();
         
         connection = familyConnectionRepository.save(connection);
@@ -105,12 +106,12 @@ public class FamilyService {
             throw new CustomException(ErrorCode.UNAUTHORIZED_FAMILY_CONNECTION);
         }
         
-        if (connection.getConnectionStatus() != FamilyConnection.ConnectionStatus.PENDING) {
+        if (connection.getConnectionStatus() != ConnectionStatus.PENDING) {
             throw new CustomException(ErrorCode.FAMILY_CONNECTION_ALREADY_PROCESSED);
         }
         
         try {
-            FamilyConnection.ConnectionStatus newStatus = FamilyConnection.ConnectionStatus.valueOf(request.getStatus());
+            ConnectionStatus newStatus = ConnectionStatus.valueOf(request.getStatus());
             connection.setConnectionStatus(newStatus);
             
             connection = familyConnectionRepository.save(connection);
@@ -143,14 +144,14 @@ public class FamilyService {
     @Transactional(readOnly = true)
     public long getPendingConnectionCount(Long userId) {
         return familyConnectionRepository
-                .findAllConnectionsByUserId(userId, FamilyConnection.ConnectionStatus.PENDING)
+                .findAllConnectionsByUserId(userId, ConnectionStatus.PENDING)
                 .size();
     }
     
     @Transactional(readOnly = true)
     public long getConnectedFamilyCount(Long userId) {
         return familyConnectionRepository
-                .findAllConnectionsByUserId(userId, FamilyConnection.ConnectionStatus.APPROVED)
+                .findAllConnectionsByUserId(userId, ConnectionStatus.APPROVED)
                 .size();
     }
 }

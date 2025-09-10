@@ -3,11 +3,13 @@ package com.grandma.ansimbank.account;
 import com.grandma.ansimbank.account.dto.AccountLinkRequestDTO;
 import com.grandma.ansimbank.account.dto.AccountResponseDTO;
 import com.grandma.ansimbank.common.response.ApiCommonResponse;
+import com.grandma.ansimbank.common.security.services.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,13 +26,10 @@ public class AccountController {
     private final AccountService accountService;
     
     @GetMapping
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<List<AccountResponseDTO>>> getAccounts(
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<List<AccountResponseDTO>>> getAccounts(
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("계좌 목록 조회: 사용자ID={}", userId);
         
@@ -40,19 +39,16 @@ public class AccountController {
     }
     
     @PostMapping("/link")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 userId 제거
-    // CODEF 연동 시 JWT의 사용자 정보와 실제 은행 계좌 소유자가 일치하는지 추가 검증 필요
-    // public ResponseEntity<ApiCommonResponse<AccountResponseDTO>> linkAccount(
-    //         @Valid @RequestBody AccountLinkRequestDTO request,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
-    //     // request에서 userId 제거하고 authenticatedUserId 사용
-    //     // JWT 사용자 이름과 CODEF에서 조회한 계좌 소유자 이름 비교 검증 로직 추가
     public ResponseEntity<ApiCommonResponse<AccountResponseDTO>> linkAccount(
-            @Valid @RequestBody AccountLinkRequestDTO request) {
+            @Valid @RequestBody AccountLinkRequestDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
-        log.info("계좌 연동: 사용자ID={}, 계좌번호={}", request.getUserId(), request.getAccountNumber());
+        // request에서 userId를 인증된 사용자 ID로 설정
+        request.setUserId(userId);
+        
+        log.info("계좌 연동: 사용자ID={}, 계좌번호={}", userId, request.getAccountNumber());
         
         AccountResponseDTO account = accountService.linkAccount(request);
         
@@ -60,15 +56,11 @@ public class AccountController {
     }
     
     @DeleteMapping("/{accountId}")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<String>> unlinkAccount(
-    //         @PathVariable Long accountId,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<String>> unlinkAccount(
             @PathVariable Long accountId,
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("계좌 연동 해제: 계좌ID={}, 사용자ID={}", accountId, userId);
         
@@ -78,15 +70,11 @@ public class AccountController {
     }
     
     @PutMapping("/{accountId}/primary")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<String>> setPrimaryAccount(
-    //         @PathVariable Long accountId,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<String>> setPrimaryAccount(
             @PathVariable Long accountId,
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("주계좌 설정: 계좌ID={}, 사용자ID={}", accountId, userId);
         

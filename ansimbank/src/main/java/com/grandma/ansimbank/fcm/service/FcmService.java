@@ -10,6 +10,7 @@ import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.fcm.repository.FcmTokenRepository;
 import com.grandma.ansimbank.user.UserRepository;
 import com.grandma.ansimbank.fcm.template.FcmMessageTemplate;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -158,7 +159,7 @@ public class FcmService {
                     .findByParentUserIdAndChildUserId(parentUserId, childUserId);
 
             if (connection.isPresent() &&
-                    connection.get().getConnectionStatus() == FamilyConnection.ConnectionStatus.APPROVED) {
+                    connection.get().getConnectionStatus() == ConnectionStatus.APPROVED) {
                 return parentUserId;
             } else {
                 throw new IllegalArgumentException("유효하지 않은 부모-자식 관계입니다.");
@@ -167,7 +168,7 @@ public class FcmService {
 
         // 2. parentUserId가 없으면 자식의 부모 찾기
         Optional<FamilyConnection> parentConnection = familyConnectionRepository
-                .findByChildUserIdAndConnectionStatus(childUserId, FamilyConnection.ConnectionStatus.APPROVED);
+                .findByChildUserIdAndConnectionStatus(childUserId, ConnectionStatus.APPROVED);
 
         if (parentConnection.isPresent()) {
             return parentConnection.get().getParent().getUserId();
@@ -183,7 +184,7 @@ public class FcmService {
     public boolean sendFraudWarningToChildren(Long parentUserId, String accountNumber, String bankName) {
         // 1. 해당 부모의 자녀들 찾기
         List<FamilyConnection> connections = familyConnectionRepository
-                .findByParentUserIdAndConnectionStatus(parentUserId, FamilyConnection.ConnectionStatus.APPROVED);
+                .findByParentUserIdAndConnectionStatus(parentUserId, ConnectionStatus.APPROVED);
 
         if (connections.isEmpty()) {
             log.warn("부모 {}의 연결된 자녀가 없습니다.", parentUserId);

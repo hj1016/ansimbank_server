@@ -3,11 +3,13 @@ package com.grandma.ansimbank.transfer;
 import com.grandma.ansimbank.transfer.dto.TransferRequestDTO;
 import com.grandma.ansimbank.transfer.dto.TransferResponseDTO;
 import com.grandma.ansimbank.common.response.ApiCommonResponse;
+import com.grandma.ansimbank.common.security.services.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,18 +21,17 @@ public class TransferController {
     private final TransferService transferService;
     
     @PostMapping("/transfer")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 필요
-    // public ResponseEntity<ApiCommonResponse<TransferResponseDTO>> transfer(
-    //         @Valid @RequestBody TransferRequestDTO request, 
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long authenticatedUserId = userPrincipal.getUserId();
-    //     // request에서 senderId 제거하고 authenticatedUserId 사용
     public ResponseEntity<ApiCommonResponse<TransferResponseDTO>> transfer(
-            @Valid @RequestBody TransferRequestDTO request) {
+            @Valid @RequestBody TransferRequestDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long authenticatedUserId = userPrincipal.getId();
+        
+        // request에서 senderId를 인증된 사용자 ID로 설정
+        request.setSenderId(authenticatedUserId);
         
         log.info("송금 요청: 송금인ID={}, 송금액={}, 수취계좌={}", 
-                request.getSenderId(), request.getAmount(), request.getReceiverAccount());
+                authenticatedUserId, request.getAmount(), request.getReceiverAccount());
         
         TransferResponseDTO response = transferService.transfer(request);
         
@@ -66,13 +67,10 @@ public class TransferController {
     }
     
     @GetMapping("/history")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<java.util.List<TransferResponseDTO>>> getTransferHistory(
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<java.util.List<TransferResponseDTO>>> getTransferHistory(
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("송금 내역 조회 요청: 사용자ID={}", userId);
         
@@ -82,13 +80,16 @@ public class TransferController {
     }
     
     @PostMapping("/quick")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 senderId 제거
-    // CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    // Long authenticatedUserId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<TransferResponseDTO>> quickTransfer(
-            @Valid @RequestBody TransferRequestDTO request) {
+            @Valid @RequestBody TransferRequestDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long authenticatedUserId = userPrincipal.getId();
         
-        log.info("원클릭 송금 요청: 송금인ID={}, 프리셋ID={}", request.getSenderId(), request.getPresetId());
+        // request에서 senderId를 인증된 사용자 ID로 설정
+        request.setSenderId(authenticatedUserId);
+        
+        log.info("원클릭 송금 요청: 송금인ID={}, 프리셋ID={}", authenticatedUserId, request.getPresetId());
         
         TransferResponseDTO response = transferService.transfer(request);
         
@@ -96,13 +97,16 @@ public class TransferController {
     }
     
     @PostMapping("/delegated/transfer")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 senderId 제거
-    // CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    // Long authenticatedUserId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<TransferResponseDTO>> delegatedTransfer(
-            @Valid @RequestBody TransferRequestDTO request) {
+            @Valid @RequestBody TransferRequestDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long authenticatedUserId = userPrincipal.getId();
         
-        log.info("위임 송금 요청: 송금인ID={}, 위임장ID={}", request.getSenderId(), request.getDelegationId());
+        // request에서 senderId를 인증된 사용자 ID로 설정
+        request.setSenderId(authenticatedUserId);
+        
+        log.info("위임 송금 요청: 송금인ID={}, 위임장ID={}", authenticatedUserId, request.getDelegationId());
         
         TransferResponseDTO response = transferService.transfer(request);
         
@@ -110,11 +114,10 @@ public class TransferController {
     }
     
     @GetMapping("/delegated")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    // Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<java.util.List<TransferResponseDTO>>> getDelegatedTransfers(
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("대리 송금 내역 조회: 사용자ID={}", userId);
         

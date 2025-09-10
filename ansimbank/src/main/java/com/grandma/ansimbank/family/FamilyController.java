@@ -1,6 +1,7 @@
 package com.grandma.ansimbank.family;
 
 import com.grandma.ansimbank.common.response.ApiCommonResponse;
+import com.grandma.ansimbank.common.security.services.UserPrincipal;
 import com.grandma.ansimbank.family.dto.FamilyConnectionRequestDTO;
 import com.grandma.ansimbank.family.dto.FamilyConnectionResponseDTO;
 import com.grandma.ansimbank.family.dto.FamilyConnectionStatusUpdateDTO;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,13 +27,10 @@ public class FamilyController {
     private final FamilyService familyService;
     
     @GetMapping("/connections")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<List<FamilyConnectionResponseDTO>>> getFamilyConnections(
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<List<FamilyConnectionResponseDTO>>> getFamilyConnections(
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("가족 연동 현황 조회: 사용자ID={}", userId);
         
@@ -42,18 +41,16 @@ public class FamilyController {
     
 
     @PostMapping("/connection/request")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 requesterId 제거
-    // public ResponseEntity<ApiCommonResponse<FamilyConnectionResponseDTO>> requestFamilyConnection(
-    //         @Valid @RequestBody FamilyConnectionRequestDTO request,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long requesterId = userPrincipal.getUserId();
-    //     // request에서 requesterId 제거하고 authenticatedUserId 사용
-    //     // 이렇게 하면 토큰의 사용자만 요청을 보낼 수 있어 보안성 향상
     public ResponseEntity<ApiCommonResponse<FamilyConnectionResponseDTO>> requestFamilyConnection(
-            @Valid @RequestBody FamilyConnectionRequestDTO request) {
+            @Valid @RequestBody FamilyConnectionRequestDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long requesterId = userPrincipal.getId();
         
-        log.info("가족 연동 요청: 요청자ID={}, 대상전화번호={}", request.getRequesterId(), request.getTargetPhoneNumber());
+        // request에서 requesterId를 인증된 사용자 ID로 설정
+        request.setRequesterId(requesterId);
+        
+        log.info("가족 연동 요청: 요청자ID={}, 대상전화번호={}", requesterId, request.getTargetPhoneNumber());
         
         FamilyConnectionResponseDTO connection = familyService.requestFamilyConnection(request);
         
@@ -61,20 +58,17 @@ public class FamilyController {
     }
     
     @PutMapping("/connection/{connectionId}/status")
-    // TODO: JWT 토큰 도입 시 Authentication 파라미터 추가 및 request의 userId 제거
-    // public ResponseEntity<ApiCommonResponse<FamilyConnectionResponseDTO>> updateConnectionStatus(
-    //         @PathVariable Long connectionId,
-    //         @Valid @RequestBody FamilyConnectionStatusUpdateDTO request,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
-    //     // request에서 userId 제거하고 authenticatedUserId 사용
-    //     // 승인/거부 권한 검증이 JWT 기반으로 자동화됨
     public ResponseEntity<ApiCommonResponse<FamilyConnectionResponseDTO>> updateConnectionStatus(
             @PathVariable Long connectionId,
-            @Valid @RequestBody FamilyConnectionStatusUpdateDTO request) {
+            @Valid @RequestBody FamilyConnectionStatusUpdateDTO request,
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
-        log.info("가족 연동 상태 변경: 연결ID={}, 상태={}", connectionId, request.getStatus());
+        // request에서 userId를 인증된 사용자 ID로 설정
+        request.setUserId(userId);
+        
+        log.info("가족 연동 상태 변경: 연결ID={}, 상태={}, 사용자ID={}", connectionId, request.getStatus(), userId);
         
         FamilyConnectionResponseDTO connection = familyService.updateConnectionStatus(connectionId, request);
         
@@ -82,15 +76,11 @@ public class FamilyController {
     }
     
     @DeleteMapping("/connection/{connectionId}")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<String>> deleteFamilyConnection(
-    //         @PathVariable Long connectionId,
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<String>> deleteFamilyConnection(
             @PathVariable Long connectionId,
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("가족 연동 해제: 연결ID={}, 요청자ID={}", connectionId, userId);
         
@@ -100,13 +90,10 @@ public class FamilyController {
     }
     
     @GetMapping("/connection/stats")
-    // TODO: JWT 토큰 도입 시 userId 파라미터를 Authentication으로 교체
-    // public ResponseEntity<ApiCommonResponse<Map<String, Object>>> getFamilyConnectionStats(
-    //         Authentication authentication) {
-    //     CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-    //     Long userId = userPrincipal.getUserId();
     public ResponseEntity<ApiCommonResponse<java.util.Map<String, Object>>> getFamilyConnectionStats(
-            @RequestParam Long userId) {
+            Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = userPrincipal.getId();
         
         log.info("가족 연동 통계 조회: 사용자ID={}", userId);
         

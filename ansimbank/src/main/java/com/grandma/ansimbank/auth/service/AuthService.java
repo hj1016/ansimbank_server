@@ -55,6 +55,8 @@ public class AuthService {
         user.setName(signUpRequest.getName());
         user.setPhoneNumber(signUpRequest.getPhoneNumber());
         user.setUserType(signUpRequest.getUserType());
+        // 임시 이메일 설정 (username + @temp.ansimbank.com)
+        user.setEmail(signUpRequest.getUsername() + "@temp.ansimbank.com");
 
         // 가족 연동 요청이 있는 경우
         if (signUpRequest.getFamilyUsername() != null && !signUpRequest.getFamilyUsername().isEmpty()) {
