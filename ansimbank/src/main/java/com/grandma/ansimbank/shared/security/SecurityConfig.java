@@ -21,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+// TODO: JWT 도입 시 @Configuration 주석 해제
+//@Configuration
 public class SecurityConfig {
 
     @Autowired
@@ -79,4 +81,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

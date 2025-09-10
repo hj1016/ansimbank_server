@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ansimbank?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: root
-    password: 1234
+    password: password
     # driver-class-name: com.mysql.cj.jdbc.Driver   # 생략 가능 (자동 감지)
   jpa:
     hibernate:
@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
   # 필요시 로깅
   # jpa.show-sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
 clova:
   stt:
     url: https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor
@@ -29,3 +29,14 @@ clova:
     url: https://naveropenapi.apigw.ntruss.com/tts-premium/v1/tts
     clientId: ${CLOVA_STT_CLIENT_ID}
     clientSecret: ${CLOVA_STT_SECRET}
+
+# CODEF API Configuration
+codef:
+  client-id: da8f42eb-895e-461b-9c14-8babb0a9ed08
+  client-secret: b613a6d3-95dd-4d3d-adf3-257697256afc
+  public-key: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlocWjwIecld4gqWCbzWUg1uArOsSstYV+kVJBmwIOLIWedQyOgl/Sb5IQ/M8FN/6TCQGG9M5di2goInX9jaTvU3tzlMuXaxTJ9WQeQwEuVf1slCOYt/IUPvZaRtbnCh3Jo2vC5zcz5a9kaIUl/6fpB5Puq4GL0jNeHp84moNrSIVXXkaRmQjtlq5/gyWyUcEAPTDOUDqpXXPmgC41P3L+a1Vi7dA4gVpbjR7UI7O60Z4wo72OoLDwKILgNcHgkYY3aF1GAp/odVUIuYvChYP3tc/J+BAbtIroCgvBucTsg/Ta7mYCgGpiwBQEe+bQhwBaLwpe598qeGsQk2YvwvgIwIDAQAB
+    -----END PUBLIC KEY-----
+  demo-domain: https://development.codef.io
+  oauth-domain: https://oauth.codef.io
