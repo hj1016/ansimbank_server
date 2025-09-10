@@ -20,7 +20,12 @@ public class ApplicationService {
     }
 
     public byte[] processVoiceCommand(String recognizedText, HttpSession session) {
+        // STT가 뭐라고 알아들었는지 확인
+        System.out.println("[STT 결과 확인] recognizedText: '" + recognizedText + "'");
         NlpResultDTO nlpResult = nlpService.analyze(recognizedText);
+
+        // NLP가 금액을 제대로 알아들었는지 확인
+        System.out.println("[NLP 결과 확인] nlpResult: " + nlpResult.toString());
         String intent = nlpResult.getIntent();
         String confirmationText;
 
