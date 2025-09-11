@@ -33,6 +33,7 @@ clova:
 firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH}
   project-id: ${FIREBASE_PROJECT_ID}
+
 jwt:
   secret: mySecretKeyForORoomApplicationJWT2024VerySafeAndSecure
 
@@ -46,7 +47,3 @@ codef:
     -----END PUBLIC KEY-----
   demo-domain: https://development.codef.io
   oauth-domain: https://oauth.codef.io
-
-firebase:
-  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
-  project-id: ${FIREBASE_PROJECT_ID}
