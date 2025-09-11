@@ -34,13 +34,14 @@ public class TransferService {
         User sender = userRepository.findById(request.getSenderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
-        // 송금인 계좌 검증
-        Account senderAccount = accountRepository.findByAccountNumberAndBankCode(
-                request.getSenderAccount(), extractBankCode(request.getSenderAccount()))
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        // 송금인 계좌 검증 - 사용자 ID와 계좌번호로 검색
+        Account senderAccount = accountRepository.findByAccountNumberAndUser_UserId(
+                request.getSenderAccount(), sender.getUserId())
+                .orElse(null);
         
-        if (!senderAccount.getUser().getUserId().equals(sender.getUserId())) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCOUNT);
+        // 등록된 계좌가 없는 경우 에러
+        if (senderAccount == null) {
+            throw new CustomException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
         
         // 송금 금액 검증
@@ -52,7 +53,23 @@ public class TransferService {
         // 수취 계좌 검증 (실제로는 외부 은행 API 호출)
         validateReceiverAccount(request.getReceiverAccount(), request.getReceiverName(), request.getReceiverBank());
         
-        // 가상 송금 처리
+        // 잔액 확인 및 차감 처리
+        if (senderAccount.getBalance() < request.getAmount().longValue()) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
+        
+        // 계좌 잔액 차감
+        long originalBalance = senderAccount.getBalance();
+        senderAccount.setBalance(originalBalance - request.getAmount().longValue());
+        accountRepository.save(senderAccount);
+        
+        log.info("계좌 잔액 차감 완료: 계좌번호={}, 기존잔액={}, 송금금액={}, 잔여잔액={}", 
+                senderAccount.getAccountNumber(), 
+                originalBalance, 
+                request.getAmount().longValue(), 
+                senderAccount.getBalance());
+
+        // 송금 처리
         Transaction transaction = processTransfer(sender, request);
         
         log.info("송금 처리 완료: 거래ID={}, 송금인={}, 수취인={}, 금액={}", 
@@ -103,6 +120,19 @@ public class TransferService {
             return Transaction.TransactionType.DELEGATION;
         }
         return Transaction.TransactionType.DIRECT;
+    }
+    
+    private void validateSenderAccount(String accountNumber) {
+        // 송금인 계좌 기본 유효성 검증
+        if (accountNumber == null || accountNumber.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_ACCOUNT_NUMBER);
+        }
+        
+        if (accountNumber.length() < 10) {
+            throw new CustomException(ErrorCode.INVALID_ACCOUNT_NUMBER);
+        }
+        
+        log.info("송금인 계좌 검증 통과: 계좌번호={}", accountNumber);
     }
     
     private void validateReceiverAccount(String accountNumber, String receiverName, String bankName) {

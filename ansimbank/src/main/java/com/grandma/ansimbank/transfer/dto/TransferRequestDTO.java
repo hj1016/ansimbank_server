@@ -16,8 +16,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TransferRequestDTO {
     
-    // TODO: JWT 토큰 도입 시 이 필드 제거 - JWT에서 사용자 ID 추출
-    @NotNull(message = "송금인 ID는 필수입니다")
+    // JWT에서 사용자 ID를 추출하므로 클라이언트에서 제공하지 않아도 됨
     private Long senderId;
     
     @NotBlank(message = "송금 계좌는 필수입니다")

@@ -31,8 +31,8 @@ public class PresetService {
                 .collect(Collectors.toList());
     }
     
-    public PresetResponseDTO createPreset(PresetRequestDTO request) {
-        User user = userRepository.findById(request.getUserId())
+    public PresetResponseDTO createPreset(PresetRequestDTO request, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
         // 프리셋 개수 한도 체크 (예: 사용자당 최대 20개)
@@ -72,11 +72,11 @@ public class PresetService {
         return PresetResponseDTO.from(preset);
     }
     
-    public PresetResponseDTO updatePreset(Long presetId, PresetRequestDTO request) {
+    public PresetResponseDTO updatePreset(Long presetId, PresetRequestDTO request, Long userId) {
         OneClickPreset preset = presetRepository.findById(presetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRESET_NOT_FOUND));
         
-        if (!preset.getUser().getUserId().equals(request.getUserId())) {
+        if (!preset.getUser().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         
@@ -99,9 +99,13 @@ public class PresetService {
         return PresetResponseDTO.from(preset);
     }
     
-    public void deletePreset(Long presetId) {
+    public void deletePreset(Long presetId, Long userId) {
         OneClickPreset preset = presetRepository.findById(presetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRESET_NOT_FOUND));
+        
+        if (!preset.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
         
         preset.setIsActive(false);
         presetRepository.save(preset);

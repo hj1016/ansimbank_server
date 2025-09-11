@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountLinkRequestDTO {
     
-    // TODO: JWT 토큰 도입 시 이 필드 제거 - JWT에서 사용자 ID 추출
-    @NotNull(message = "사용자 ID는 필수입니다")
+    // JWT 토큰에서 사용자 ID 추출 - Controller에서 설정됨
     private Long userId;
     
     @NotBlank(message = "연동 방식은 필수입니다")

@@ -21,6 +21,7 @@ public class AccountResponseDTO {
     private String accountNumber;
     private String accountHolder;
     private Boolean isPrimary;
+    private Long balance;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -33,6 +34,7 @@ public class AccountResponseDTO {
                 .accountNumber(account.getAccountNumber())
                 .accountHolder(account.getAccountHolder())
                 .isPrimary(account.getIsPrimary())
+                .balance(account.getBalance())
                 .createdAt(account.getCreatedAt())
                 .updatedAt(account.getUpdatedAt())
                 .build();

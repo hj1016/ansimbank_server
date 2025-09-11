@@ -125,6 +125,7 @@ public class AccountService {
                     .isPrimary(request.getIsPrimary())
                     .connectedId(connectedId)
                     .linkType("CODEF")
+                    .balance(7358950L) // 더미 잔액 데이터
                     .build();
                     
         } catch (Exception e) {
@@ -158,6 +159,7 @@ public class AccountService {
                 .accountHolder(request.getAccountHolder())
                 .isPrimary(request.getIsPrimary())
                 .linkType("MANUAL")
+                .balance(7358950L) // 더미 잔액 데이터
                 .build();
     }
     
