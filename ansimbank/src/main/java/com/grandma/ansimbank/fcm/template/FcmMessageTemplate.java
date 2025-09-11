@@ -3,8 +3,8 @@ package com.grandma.ansimbank.fcm.template;
 import com.grandma.ansimbank.fcm.dto.DelegationNotificationRequest;
 import com.grandma.ansimbank.fcm.dto.FcmNotificationRequest;
 import com.grandma.ansimbank.fcm.dto.TransferNotificationRequest;
-import com.grandma.ansimbank.fcm.entity.User;
-import com.grandma.ansimbank.fcm.repository.UserRepository;
+import com.grandma.ansimbank.user.User;
+import com.grandma.ansimbank.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -5,11 +5,12 @@ import com.grandma.ansimbank.fcm.dto.DelegationNotificationRequest;
 import com.grandma.ansimbank.fcm.dto.FcmNotificationRequest;
 import com.grandma.ansimbank.fcm.entity.FamilyConnection;
 import com.grandma.ansimbank.fcm.entity.FcmToken;
-import com.grandma.ansimbank.fcm.entity.User;
-import com.grandma.ansimbank.fcm.repository.FamilyConnectionRepository;
+import com.grandma.ansimbank.user.User;
+import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.fcm.repository.FcmTokenRepository;
-import com.grandma.ansimbank.fcm.repository.UserRepository;
+import com.grandma.ansimbank.user.UserRepository;
 import com.grandma.ansimbank.fcm.template.FcmMessageTemplate;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,41 +85,54 @@ public class FcmService {
                 log.info("목 토큰 감지 - 실제 전송 건너뛰고 성공 처리: {}", maskToken(token));
                 return true;
             }
+
+            log.info("FCM 메시지 전송 시도: token={}, title={}, body={}",
+                    maskToken(token), title, body);
+
             // FCM 메시지 생성
             Message message = Message.builder()
                     .setNotification(Notification.builder()
                             .setTitle(title)
                             .setBody(body)
                             .build())
+                    .putData("title", title)
+                    .putData("body", body)
                     .setToken(token)
                     .build();
 
             // Firebase로 메시지 전송
             String response = FirebaseMessaging.getInstance().send(message);
-            log.debug("FCM 응답: {}", response);
+            log.info("FCM 전송 응답: {}", response);
 
             return true;
 
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 전송 실패: {}", e.getMessage());
+            log.error("FCM 전송 실패: errorCode={}, message={}",
+                    e.getMessagingErrorCode(), e.getMessage());
             throw new RuntimeException("FCM 전송 실패", e);
         }
     }
-
     /**
      * FCM 토큰 등록
      */
-   @Transactional
+    @Transactional
     public void registerToken(Long userId, String fcmToken) {
-        Optional<FcmToken> existingToken = fcmTokenRepository.findByFcmToken(fcmToken);
+        // 기존 토큰들 모두 찾기
+        List<FcmToken> existingTokens = fcmTokenRepository.findByFcmToken(fcmToken);
 
-        if (existingToken.isPresent()) {
-            // 기존 토큰이 있으면 활성화만 업데이트
-            existingToken.get().setIsActive(true);
-            fcmTokenRepository.save(existingToken.get());
-            log.info("기존 토큰 활성화: {}", maskToken(fcmToken));
+        if (!existingTokens.isEmpty()) {
+            // 기존 토큰들 중 해당 사용자 것만 활성화, 나머지는 비활성화
+            for (FcmToken token : existingTokens) {
+                if (token.getUser().getUserId().equals(userId)) {
+                    token.setIsActive(true);
+                } else {
+                    token.setIsActive(false);
+                }
+                fcmTokenRepository.save(token);
+            }
+            log.info("기존 FCM 토큰 업데이트: userId={}", userId);
         } else {
-            // 새 토큰이면 저장 - userRepository 사용해야 함
+            // 새 토큰 생성
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
 
@@ -129,10 +143,9 @@ public class FcmService {
                     .build();
 
             fcmTokenRepository.save(newToken);
-            log.info("새 FCM 토큰 등록: userId={}, token={}", userId, maskToken(fcmToken));
+            log.info("새 FCM 토큰 등록: userId={}", userId);
         }
     }
-
     /**
      * 위임업무 알림 발송 (통합 메서드)
      */
@@ -158,7 +171,7 @@ public class FcmService {
                     .findByParentUserIdAndChildUserId(parentUserId, childUserId);
 
             if (connection.isPresent() &&
-                    connection.get().getConnectionStatus() == FamilyConnection.ConnectionStatus.APPROVED) {
+                    connection.get().getConnectionStatus() == ConnectionStatus.APPROVED) {
                 return parentUserId;
             } else {
                 throw new IllegalArgumentException("유효하지 않은 부모-자식 관계입니다.");
@@ -167,7 +180,7 @@ public class FcmService {
 
         // 2. parentUserId가 없으면 자식의 부모 찾기
         Optional<FamilyConnection> parentConnection = familyConnectionRepository
-                .findByChildUserIdAndConnectionStatus(childUserId, FamilyConnection.ConnectionStatus.APPROVED);
+                .findByChildUserIdAndConnectionStatus(childUserId, ConnectionStatus.APPROVED);
 
         if (parentConnection.isPresent()) {
             return parentConnection.get().getParent().getUserId();
@@ -183,7 +196,7 @@ public class FcmService {
     public boolean sendFraudWarningToChildren(Long parentUserId, String accountNumber, String bankName) {
         // 1. 해당 부모의 자녀들 찾기
         List<FamilyConnection> connections = familyConnectionRepository
-                .findByParentUserIdAndConnectionStatus(parentUserId, FamilyConnection.ConnectionStatus.APPROVED);
+                .findByParentUserIdAndConnectionStatus(parentUserId, ConnectionStatus.APPROVED);
 
         if (connections.isEmpty()) {
             log.warn("부모 {}의 연결된 자녀가 없습니다.", parentUserId);

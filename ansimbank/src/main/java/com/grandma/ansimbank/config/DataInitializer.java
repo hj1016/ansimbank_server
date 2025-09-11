@@ -1,9 +1,10 @@
 package com.grandma.ansimbank.config;
 
 import com.grandma.ansimbank.fcm.entity.FamilyConnection;
-import com.grandma.ansimbank.fcm.entity.User;
-import com.grandma.ansimbank.fcm.repository.FamilyConnectionRepository;
-import com.grandma.ansimbank.fcm.repository.UserRepository;
+import com.grandma.ansimbank.user.User;
+import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
+import com.grandma.ansimbank.user.UserRepository;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -36,7 +37,9 @@ public class DataInitializer implements ApplicationRunner {
                 .password("$2a$10$example.hash.for.password123") // 실제로는 BCrypt 해시 사용
                 .name("김부모")
                 .phone("010-1234-5678")
+                .birthDate(LocalDate.of(1980, 5, 15))
                 .userType(User.UserType.PARENT)
+                .socialProvider(User.SocialProvider.NONE)
                 .isActive(true)
                 .build();
 
@@ -45,7 +48,9 @@ public class DataInitializer implements ApplicationRunner {
                 .password("$2a$10$example.hash.for.password123")
                 .name("김자녀")
                 .phone("010-9876-5432")
+                .birthDate(LocalDate.of(2000, 8, 20))
                 .userType(User.UserType.CHILD)
+                .socialProvider(User.SocialProvider.NONE)
                 .isActive(true)
                 .build();
 
@@ -54,7 +59,9 @@ public class DataInitializer implements ApplicationRunner {
                 .password("$2a$10$example.hash.for.password123")
                 .name("테스트사용자")
                 .phone("010-1111-2222")
+                .birthDate(LocalDate.of(1975, 12, 10))
                 .userType(User.UserType.PARENT)
+                .socialProvider(User.SocialProvider.NONE)
                 .isActive(true)
                 .build();
 
@@ -64,7 +71,10 @@ public class DataInitializer implements ApplicationRunner {
                 .password("$2a$10$example.hash.for.password123")
                 .name("카카오사용자")
                 .phone("010-3333-4444")
+                .birthDate(LocalDate.of(1990, 3, 25))
                 .userType(User.UserType.PARENT)
+                .socialProvider(User.SocialProvider.KAKAO)
+                .socialId("kakao123456")
                 .isActive(true)
                 .build();
 
@@ -77,7 +87,7 @@ public class DataInitializer implements ApplicationRunner {
         FamilyConnection approvedConnection = FamilyConnection.builder()
                 .parent(parent)
                 .child(child)
-                .connectionStatus(FamilyConnection.ConnectionStatus.APPROVED)
+                .connectionStatus(ConnectionStatus.APPROVED)
                 .build();
 
         familyConnectionRepository.save(approvedConnection);

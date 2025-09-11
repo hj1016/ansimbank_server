@@ -1,5 +1,7 @@
 package com.grandma.ansimbank.fcm.entity;
 
+import com.grandma.ansimbank.user.User;
+import com.grandma.ansimbank.common.constants.ConnectionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,8 +44,4 @@ public class FamilyConnection {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 연동 상태 enum
-    public enum ConnectionStatus {
-        PENDING, APPROVED, REJECTED
-    }
 }
