@@ -50,6 +50,10 @@ public class Account {
     @Column(name = "link_type")
     private String linkType; // "MANUAL" 또는 "CODEF"
     
+    @Builder.Default
+    @Column(name = "balance")
+    private Long balance = 0L; // 계좌 잔액 (원 단위)
+    
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

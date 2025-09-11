@@ -16,10 +16,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PresetRequestDTO {
     
-    // TODO: JWT 토큰 도입 시 이 필드 제거 - JWT에서 사용자 ID 추출
-    @NotNull(message = "사용자 ID는 필수입니다")
-    private Long userId;
-    
     @NotBlank(message = "프리셋 이름은 필수입니다")
     private String presetName;
     
@@ -32,7 +28,6 @@ public class PresetRequestDTO {
     @NotBlank(message = "수취은행은 필수입니다")
     private String receiverBank;
     
-    @Positive(message = "기본 송금액은 0보다 커야 합니다")
     private BigDecimal defaultAmount;
     
     private String buttonColor;

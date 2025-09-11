@@ -32,4 +32,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     
     @Query("SELECT a FROM Account a WHERE a.accountHolder = :accountHolder AND a.isActive = true")
     List<Account> findByAccountHolderAndIsActiveTrue(@Param("accountHolder") String accountHolder);
+    
+    Optional<Account> findByAccountNumberAndUser_UserId(String accountNumber, Long userId);
 }
