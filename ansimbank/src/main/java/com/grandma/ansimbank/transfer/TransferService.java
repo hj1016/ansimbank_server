@@ -200,7 +200,6 @@ public class TransferService {
     }
     
     private String extractBankCode(String accountNumber) {
-        // 실제로는 계좌번호에서 은행코드를 추출하는 로직
         return "001"; // 임시 은행코드
     }
 }

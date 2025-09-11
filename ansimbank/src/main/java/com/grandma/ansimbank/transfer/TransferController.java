@@ -43,7 +43,6 @@ public class TransferController {
             @RequestParam String accountNumber,
             @RequestParam String bankCode) {
         
-        // 실제로는 외부 은행 API를 통해 계좌 유효성 검증
         log.info("계좌 유효성 검증 요청: 계좌번호={}, 은행코드={}", accountNumber, bankCode);
         
         String accountHolderName = "홍길동"; // 가상 예금주명
@@ -57,7 +56,6 @@ public class TransferController {
             @RequestParam String receiverBankCode,
             @RequestParam int amount) {
         
-        // 가상 수수료 계산
         int fee = calculateTransferFee(senderBankCode, receiverBankCode, amount);
         
         log.info("송금 수수료 조회: 송금은행={}, 수취은행={}, 금액={}, 수수료={}", 
@@ -86,7 +84,6 @@ public class TransferController {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Long authenticatedUserId = userPrincipal.getId();
         
-        // request에서 senderId를 인증된 사용자 ID로 설정
         request.setSenderId(authenticatedUserId);
         
         log.info("원클릭 송금 요청: 송금인ID={}, 프리셋ID={}", authenticatedUserId, request.getPresetId());
@@ -103,7 +100,6 @@ public class TransferController {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Long authenticatedUserId = userPrincipal.getId();
         
-        // request에서 senderId를 인증된 사용자 ID로 설정
         request.setSenderId(authenticatedUserId);
         
         log.info("위임 송금 요청: 송금인ID={}, 위임장ID={}", authenticatedUserId, request.getDelegationId());

@@ -19,9 +19,6 @@ import java.util.List;
 @RequestMapping("/api/family")
 @RequiredArgsConstructor
 @Slf4j
-// JWT 통합 후에는 @PreAuthorize 또는 Spring Security 설정으로 인증/권한 체크 필요
-// 현재: userId 파라미터로 사용자 식별
-// 변경 후: JWT 토큰에서 자동으로 사용자 정보 추출하여 보안성 강화
 public class FamilyController {
     
     private final FamilyService familyService;
@@ -47,7 +44,6 @@ public class FamilyController {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Long requesterId = userPrincipal.getId();
         
-        // request에서 requesterId를 인증된 사용자 ID로 설정
         request.setRequesterId(requesterId);
         
         log.info("가족 연동 요청: 요청자ID={}, 대상전화번호={}", requesterId, request.getTargetPhoneNumber());
@@ -65,12 +61,9 @@ public class FamilyController {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Long userId = userPrincipal.getId();
         
-        // request에서 userId를 인증된 사용자 ID로 설정
-        request.setUserId(userId);
-        
         log.info("가족 연동 상태 변경: 연결ID={}, 상태={}, 사용자ID={}", connectionId, request.getStatus(), userId);
         
-        FamilyConnectionResponseDTO connection = familyService.updateConnectionStatus(connectionId, request);
+        FamilyConnectionResponseDTO connection = familyService.updateConnectionStatus(connectionId, request, userId);
         
         return ResponseEntity.ok(ApiCommonResponse.success(connection));
     }

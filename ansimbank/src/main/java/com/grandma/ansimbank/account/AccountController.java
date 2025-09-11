@@ -18,9 +18,6 @@ import java.util.List;
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
 @Slf4j
-// JWT 통합 후에는 @PreAuthorize 또는 Spring Security 설정으로 인증/권한 체크 필요
-// 현재: userId 파라미터로 사용자 식별
-// 변경 후: JWT 토큰에서 자동으로 사용자 정보 추출하여 보안성 강화
 public class AccountController {
     
     private final AccountService accountService;
@@ -45,7 +42,6 @@ public class AccountController {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Long userId = userPrincipal.getId();
         
-        // request에서 userId를 인증된 사용자 ID로 설정
         request.setUserId(userId);
         
         log.info("계좌 연동: 사용자ID={}, 계좌번호={}", userId, request.getAccountNumber());

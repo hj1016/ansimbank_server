@@ -40,12 +40,6 @@ public class AccountService {
     }
     
     public AccountResponseDTO linkAccount(AccountLinkRequestDTO request) {
-        // TODO: JWT 통합 후 변경 예정
-        // JWT에서 현재 로그인한 사용자 정보를 가져와 해당 사용자가 accountHolder가 되도록 수정
-        // 현재: userId 파라미터로 사용자 조회
-        // 변경 후: SecurityContextHolder에서 JWT 토큰의 사용자 정보 추출
-        // Example: Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        //         String currentUserId = auth.getName(); // or custom UserDetails
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
@@ -58,16 +52,13 @@ public class AccountService {
         Account account;
         
         if ("CODEF".equals(request.getLinkType())) {
-            // CODEF 방식 - 실제 은행 계좌 연동
             account = linkAccountWithCodef(request, user);
         } else if ("MANUAL".equals(request.getLinkType())) {
-            // MANUAL 방식 - 수동 입력
             account = linkAccountManually(request, user);
         } else {
             throw new CustomException(ErrorCode.INVALID_REQUEST_DATA);
         }
         
-        // 주계좌 설정 시 기존 주계좌 해제
         if (request.getIsPrimary()) {
             accountRepository.findByUser_UserIdAndIsPrimaryTrueAndIsActiveTrue(user.getUserId())
                     .ifPresent(existingPrimary -> {
@@ -108,7 +99,7 @@ public class AccountService {
             
             // CODEF API는 보안상 예금주 정보를 제공하지 않으므로, 현재 사용자를 예금주로 설정
             // JWT 통합 후에는 토큰에서 가져온 사용자 이름을 사용
-            String accountHolder = user.getName(); // 현재는 User 엔티티의 name 필드 사용
+            String accountHolder = user.getName();
             
             // 4. 중복 계좌 체크
             if (accountRepository.existsByAccountNumberAndBankCode(accountNumber, request.getBankCode())) {
@@ -125,7 +116,7 @@ public class AccountService {
                     .isPrimary(request.getIsPrimary())
                     .connectedId(connectedId)
                     .linkType("CODEF")
-                    .balance(7358950L) // 더미 잔액 데이터
+                    .balance(7358950L)
                     .build();
                     
         } catch (Exception e) {

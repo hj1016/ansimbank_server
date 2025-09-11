@@ -104,12 +104,15 @@ public class FamilyService {
         }
         
         User parent, child;
-        if (requester.getBirthDate().isBefore(target.getBirthDate())) {
+        if (requester.getUserType() == User.UserType.PARENT) {
             parent = requester;
             child = target;
-        } else {
+        } else if (target.getUserType() == User.UserType.PARENT) {
             parent = target;
             child = requester;
+        } else {
+            parent = requester;
+            child = target;
         }
         
         FamilyConnection connection = FamilyConnection.builder()
@@ -153,10 +156,7 @@ public class FamilyService {
         
         log.info("가족 초대 생성: 초대ID={}, 초대자={}, 대상전화번호={}, 초대코드={}", 
                 invitation.getInvitationId(), requester.getName(), request.getTargetPhoneNumber(), invitationCode);
-        
-        // TODO: SMS 발송 로직 추가
-        // sendInvitationSMS(request.getTargetPhoneNumber(), requester.getName(), invitationCode);
-        
+
         // 초대는 즉시 완료로 처리 (실제 연결은 초대받은 사람이 가입할 때 생성)
         return FamilyConnectionResponseDTO.builder()
                 .connectionId(invitation.getInvitationId())
@@ -170,14 +170,14 @@ public class FamilyService {
                 .build();
     }
     
-    public FamilyConnectionResponseDTO updateConnectionStatus(Long connectionId, FamilyConnectionStatusUpdateDTO request) {
-        log.info("가족 연동 상태 변경: 연결ID={}, 상태={}", connectionId, request.getStatus());
+    public FamilyConnectionResponseDTO updateConnectionStatus(Long connectionId, FamilyConnectionStatusUpdateDTO request, Long userId) {
+        log.info("가족 연동 상태 변경: 연결ID={}, 상태={}, 사용자ID={}", connectionId, request.getStatus(), userId);
         
         FamilyConnection connection = familyConnectionRepository.findById(connectionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FAMILY_CONNECTION_NOT_FOUND));
         
-        if (!connection.getParent().getUserId().equals(request.getUserId()) && 
-            !connection.getChild().getUserId().equals(request.getUserId())) {
+        if (!connection.getParent().getUserId().equals(userId) && 
+            !connection.getChild().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.UNAUTHORIZED_FAMILY_CONNECTION);
         }
         
@@ -239,10 +239,7 @@ public class FamilyService {
                 .findAllConnectionsByUserId(userId, ConnectionStatus.APPROVED)
                 .size();
     }
-    
-    /**
-     * FamilyInvitation을 FamilyConnectionResponseDTO로 변환하는 헬퍼 메서드
-     */
+
     private FamilyConnectionResponseDTO convertInvitationToResponseDTO(FamilyInvitation invitation) {
         return FamilyConnectionResponseDTO.builder()
                 .connectionId(invitation.getInvitationId())
@@ -268,17 +265,19 @@ public class FamilyService {
         
         for (FamilyInvitation invitation : validInvitations) {
             try {
-                // 가족 연결 생성
                 User inviter = invitation.getInviter();
                 User parent, child;
                 
-                // 나이로 부모/자녀 결정 (생년월일 기준)
-                if (inviter.getBirthDate().isBefore(newUser.getBirthDate())) {
+                if (inviter.getUserType() == User.UserType.PARENT) {
                     parent = inviter;
                     child = newUser;
-                } else {
+                } else if (newUser.getUserType() == User.UserType.PARENT) {
                     parent = newUser;
                     child = inviter;
+                } else {
+                    // If both are same type, use inviter as parent for consistency
+                    parent = inviter;
+                    child = newUser;
                 }
                 
                 FamilyConnection connection = FamilyConnection.builder()
