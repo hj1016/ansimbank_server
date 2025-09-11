@@ -30,6 +30,9 @@ clova:
     clientId: ${CLOVA_STT_CLIENT_ID}
     clientSecret: ${CLOVA_STT_SECRET}
 
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
+  project-id: ${FIREBASE_PROJECT_ID}
 jwt:
   secret: mySecretKeyForORoomApplicationJWT2024VerySafeAndSecure
 

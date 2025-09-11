@@ -14,6 +14,6 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     List<FcmToken> findByUserUserIdAndIsActiveTrue(Long userId);
 
     // 특정 FCM 토큰 찾기
-    Optional<FcmToken> findByFcmToken(String fcmToken);
+    List<FcmToken> findByFcmToken(String fcmToken);
 
 }
