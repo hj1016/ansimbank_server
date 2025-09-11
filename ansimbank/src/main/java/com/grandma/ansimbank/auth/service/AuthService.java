@@ -9,6 +9,7 @@ import com.grandma.ansimbank.common.security.services.UserPrincipal;
 import com.grandma.ansimbank.user.User;
 import com.grandma.ansimbank.user.repository.FamilyConnectionRepository;
 import com.grandma.ansimbank.user.UserRepository;
+import com.grandma.ansimbank.family.FamilyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,6 +41,9 @@ public class AuthService {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private FamilyService familyService;
 
     public ResponseEntity<?> registerUser(SignUpRequest signUpRequest) {
         // 사용자명 중복 체크
@@ -81,7 +85,15 @@ public class AuthService {
             user.setConnectionStatus(ConnectionStatus.APPROVED); // 단독 가입은 바로 승인
         }
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+        
+        // 가족 초대 처리 (가입한 전화번호로 온 초대들을 자동으로 연결)
+        try {
+            familyService.processInvitationsOnSignUp(user);
+        } catch (Exception e) {
+            // 초대 처리 실패해도 회원가입은 성공으로 처리
+            System.err.println("가족 초대 처리 실패: " + e.getMessage());
+        }
 
         return ResponseEntity.ok(new MessageResponse("회원가입이 완료되었습니다!"));
     }

@@ -21,7 +21,11 @@ public interface FamilyConnectionRepository extends JpaRepository<FamilyConnecti
     Optional<FamilyConnection> findByChildUserIdAndConnectionStatus(Long childId, ConnectionStatus status);
     Optional<FamilyConnection> findByParentUserIdAndChildUserId(Long parentId, Long childId);
     
-    // 사용자가 연결된 모든 관계 찾기
+    // 사용자가 연결된 모든 관계 찾기 (특정 상태)
     @Query("SELECT fc FROM FamilyConnection fc WHERE (fc.parent.userId = :userId OR fc.child.userId = :userId) AND fc.connectionStatus = :status")
     List<FamilyConnection> findAllConnectionsByUserId(@Param("userId") Long userId, @Param("status") ConnectionStatus status);
+    
+    // 사용자가 연결된 모든 관계 찾기 (모든 상태)
+    @Query("SELECT fc FROM FamilyConnection fc WHERE (fc.parent.userId = :userId OR fc.child.userId = :userId)")
+    List<FamilyConnection> findAllConnectionsByUserIdAllStatuses(@Param("userId") Long userId);
 }

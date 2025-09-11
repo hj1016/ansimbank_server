@@ -61,7 +61,10 @@ public enum ErrorCode {
     // 409 Conflict - 가족 연동 중복/상태
     FAMILY_CONNECTION_ALREADY_EXISTS("E40903", "이미 연동된 가족입니다.", HttpStatus.CONFLICT),
     FAMILY_CONNECTION_PENDING("E40904", "이미 요청 중인 가족 연동이 있습니다.", HttpStatus.CONFLICT),
-    FAMILY_CONNECTION_ALREADY_PROCESSED("E40905", "이미 처리된 가족 연동 요청입니다.", HttpStatus.CONFLICT);
+    FAMILY_CONNECTION_ALREADY_PROCESSED("E40905", "이미 처리된 가족 연동 요청입니다.", HttpStatus.CONFLICT),
+    FAMILY_INVITATION_ALREADY_EXISTS("E40906", "이미 초대를 보낸 가족입니다.", HttpStatus.CONFLICT),
+    FAMILY_INVITATION_NOT_FOUND("E40406", "가족 초대 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    FAMILY_INVITATION_EXPIRED("E40907", "가족 초대가 만료되었습니다.", HttpStatus.CONFLICT);
     // ===================================
 
     private final String code;

@@ -21,6 +21,7 @@ public class FamilyConnectionResponseDTO {
     private Long childId;
     private String childName;
     private String childPhone;
+    private String relationshipType;
     private String connectionStatus; // PENDING, APPROVED, REJECTED
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
