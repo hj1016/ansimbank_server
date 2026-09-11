@@ -28,64 +28,41 @@ public class TransferService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
-    
+    private final TransactionAuditService transactionAuditService;
+
     public TransferResponseDTO transfer(TransferRequestDTO request) {
         // 송금인 조회
         User sender = userRepository.findById(request.getSenderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        
-        // 송금인 계좌 검증 - 사용자 ID와 계좌번호로 검색
-        Account senderAccount = accountRepository.findByAccountNumberAndUser_UserId(
-                request.getSenderAccount(), sender.getUserId())
-                .orElse(null);
-        
-        // 등록된 계좌가 없는 경우 에러
-        if (senderAccount == null) {
-            throw new CustomException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        // 송금 금액 검증
+
+        // 락을 잡기 전에 끝낼 수 있는 검증은 먼저 수행해 락 점유 시간을 최소화한다.
         validateTransferAmount(request.getAmount());
-        
-        // 자기 자신에게 송금 방지
         validateSelfTransfer(request.getSenderAccount(), request.getReceiverAccount());
-        
-        // 수취 계좌 검증 (실제로는 외부 은행 API 호출)
         validateReceiverAccount(request.getReceiverAccount(), request.getReceiverName(), request.getReceiverBank());
-        
-        // 잔액 확인 및 차감 처리
-        if (senderAccount.getBalance() < request.getAmount().longValue()) {
+
+        // [동시성] 비관적 쓰기 락으로 송금 계좌 행을 잠근 채 조회한다.
+        // 같은 계좌에 대한 동시 송금이 "잔액 확인 → 차감" 사이에 끼어들어 이중 차감/마이너스 잔액을
+        // 만드는 race condition을, 차감 경로 자체에서 DB 레벨로 직렬화해 차단한다.
+        Account senderAccount = accountRepository
+                .findByAccountNumberAndUser_UserIdForUpdate(request.getSenderAccount(), sender.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        long amount;
+        try {
+            amount = request.getAmount().longValueExact();
+        } catch (ArithmeticException e) {
+            throw new CustomException(ErrorCode.INVALID_TRANSFER_AMOUNT);
+        }
+
+        // 잔액 확인 (락을 쥔 상태이므로 확인~차감이 원자적으로 보장됨)
+        if (senderAccount.getBalance() < amount) {
             throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
         }
-        
-        // 계좌 잔액 차감
-        long originalBalance = senderAccount.getBalance();
-        senderAccount.setBalance(originalBalance - request.getAmount().longValue());
-        accountRepository.save(senderAccount);
-        
-        log.info("계좌 잔액 차감 완료: 계좌번호={}, 기존잔액={}, 송금금액={}, 잔여잔액={}", 
-                senderAccount.getAccountNumber(), 
-                originalBalance, 
-                request.getAmount().longValue(), 
-                senderAccount.getBalance());
 
-        // 송금 처리
-        Transaction transaction = processTransfer(sender, request);
-        
-        log.info("송금 처리 완료: 거래ID={}, 송금인={}, 수취인={}, 금액={}", 
-                transaction.getTransactionId(), sender.getName(), request.getReceiverName(), request.getAmount());
-        
-        TransferResponseDTO response = TransferResponseDTO.from(transaction);
-        response.setMessage("송금이 완료되었습니다.");
-        
-        return response;
-    }
-    
-    private Transaction processTransfer(User sender, TransferRequestDTO request) {
-        // 외부 거래 ID 생성
-        String externalTransactionId = "TXN" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
-        
-        // 거래 생성
+        Transaction.TransactionType type = determineTransactionType(request);
+        String externalTransactionId = generateExternalTransactionId();
+
+        // [원자성] 거래를 PENDING 으로 먼저 적재해 '시도'를 추적 가능한 상태로 만든다.
         Transaction transaction = Transaction.builder()
                 .sender(sender)
                 .senderAccount(request.getSenderAccount())
@@ -94,23 +71,49 @@ public class TransferService {
                 .receiverBank(request.getReceiverBank())
                 .amount(request.getAmount())
                 .memo(request.getMemo())
-                .transactionType(determineTransactionType(request))
+                .transactionType(type)
                 .transactionStatus(Transaction.TransactionStatus.PENDING)
                 .externalTransactionId(externalTransactionId)
                 .requestedAt(LocalDateTime.now())
                 .build();
-        
-        // 거래 저장
         transaction = transactionRepository.save(transaction);
-        
-        // 가상 처리 (실제로는 외부 은행 API 호출)
-        simulateExternalBankTransfer(transaction);
-        
-        // 거래 완료 처리
+
+        // 계좌 잔액 차감
+        long originalBalance = senderAccount.getBalance();
+        senderAccount.setBalance(originalBalance - amount);
+        accountRepository.save(senderAccount);
+
+        log.info("계좌 잔액 차감 완료: 계좌={}, 송금금액={}",
+                maskAccountNumber(senderAccount.getAccountNumber()), amount);
+
+        // [보상 트랜잭션] 외부 송금 실패 시:
+        //   1) 본 트랜잭션을 롤백시켜 잔액 차감을 자동 원복(= 보상)하고,
+        //   2) 별도(REQUIRES_NEW) 감사 트랜잭션에 FAILED 이력을 남겨 실패 사실은 영속화한다.
+        try {
+            callExternalBankTransfer(transaction);
+        } catch (RuntimeException e) {
+            log.error("외부 송금 실패 → 롤백으로 잔액 원복, FAILED 이력 적재: 외부거래ID={}, 사유={}",
+                    externalTransactionId, e.getMessage());
+            transactionAuditService.recordFailure(sender.getUserId(), request, type, externalTransactionId, e.getMessage());
+            throw new CustomException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        // 외부 송금 성공 → 완료 처리
         transaction.setTransactionStatus(Transaction.TransactionStatus.COMPLETED);
         transaction.setCompletedAt(LocalDateTime.now());
-        
-        return transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
+
+        log.info("송금 처리 완료: 거래ID={}, 금액={}",
+                transaction.getTransactionId(), request.getAmount());
+
+        TransferResponseDTO response = TransferResponseDTO.from(transaction);
+        response.setMessage("송금이 완료되었습니다.");
+
+        return response;
+    }
+
+    private String generateExternalTransactionId() {
+        return "TXN" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
     }
     
     private Transaction.TransactionType determineTransactionType(TransferRequestDTO request) {
@@ -122,26 +125,13 @@ public class TransferService {
         return Transaction.TransactionType.DIRECT;
     }
     
-    private void validateSenderAccount(String accountNumber) {
-        // 송금인 계좌 기본 유효성 검증
-        if (accountNumber == null || accountNumber.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_ACCOUNT_NUMBER);
-        }
-        
-        if (accountNumber.length() < 10) {
-            throw new CustomException(ErrorCode.INVALID_ACCOUNT_NUMBER);
-        }
-        
-        log.info("송금인 계좌 검증 통과: 계좌번호={}", accountNumber);
-    }
-    
     private void validateReceiverAccount(String accountNumber, String receiverName, String bankName) {
         // 실제로는 외부 은행 API를 통해 계좌 유효성 검증
         if (accountNumber.length() < 10) {
             throw new CustomException(ErrorCode.INVALID_ACCOUNT_NUMBER);
         }
         
-        log.info("수취 계좌 검증: 계좌번호={}, 예금주={}, 은행={}", accountNumber, receiverName, bankName);
+        log.info("수취 계좌 형식 검증: 계좌={}, 은행={}", maskAccountNumber(accountNumber), bankName);
     }
     
     private void validateTransferAmount(BigDecimal amount) {
@@ -161,9 +151,27 @@ public class TransferService {
             throw new CustomException(ErrorCode.SAME_ACCOUNT_TRANSFER);
         }
     }
+
+    private String maskAccountNumber(String accountNumber) {
+        if (accountNumber == null || accountNumber.length() <= 4) {
+            return "****";
+        }
+        return "*".repeat(accountNumber.length() - 4) + accountNumber.substring(accountNumber.length() - 4);
+    }
     
-    private void simulateExternalBankTransfer(Transaction transaction) {
-        // 가상 외부 은행 송금 처리 (실제로는 외부 API 호출)
+    /**
+     * 외부 은행 송금 호출 (현재는 모킹).
+     *
+     * <p>한계(정직한 미완성):
+     * <ul>
+     *   <li>실제 망 연동이 아니라 {@link Thread#sleep}으로 지연만 흉내 내는 단방향 차감이다.
+     *       수취 계좌의 잔액 증가(복식부기)는 외부 은행 소관이라 여기서는 표현되지 않는다.</li>
+     *   <li>실패/타임아웃을 던지면 위의 보상 로직이 동작하도록 구조는 잡아두었으나,
+     *       "외부는 성공했는데 우리 쪽 커밋이 실패"하는 분산 트랜잭션 불일치는 단일 DB 트랜잭션으로는
+     *       완결할 수 없다. 운영에서는 Saga + Outbox + 정산(reconciliation) 배치가 정답이며, 이는 다음 과제.</li>
+     * </ul>
+     */
+    private void callExternalBankTransfer(Transaction transaction) {
         try {
             Thread.sleep(1000); // 외부 API 호출 시뮬레이션
             log.info("외부 은행 송금 처리 완료: {}", transaction.getExternalTransactionId());
@@ -199,7 +207,4 @@ public class TransferService {
                 .collect(java.util.stream.Collectors.toList());
     }
     
-    private String extractBankCode(String accountNumber) {
-        return "001"; // 임시 은행코드
-    }
 }

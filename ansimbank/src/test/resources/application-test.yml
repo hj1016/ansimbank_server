@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:ansimbank;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+firebase:
+  enabled: false
+
+jwt:
+  secret: dGVzdC1vbmx5LWp3dC1zaWduaW5nLWtleS10aGF0LWlzLWxvbmc=
+
+codef:
+  client-id: test-client
+  client-secret: test-secret
+  public-key: test-public-key
+
+clova:
+  stt:
+    url: http://localhost/stt
+    clientId: test-client
+    clientSecret: test-secret
+  tts:
+    url: http://localhost/tts
+    clientId: test-client
+    clientSecret: test-secret

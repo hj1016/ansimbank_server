@@ -3,6 +3,7 @@ package com.grandma.ansimbank.transfer.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Digits;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +34,7 @@ public class TransferRequestDTO {
     
     @NotNull(message = "송금 금액은 필수입니다")
     @Positive(message = "송금 금액은 0보다 커야 합니다")
+    @Digits(integer = 15, fraction = 0, message = "송금 금액은 원 단위 정수여야 합니다")
     private BigDecimal amount;
     
     private String memo;

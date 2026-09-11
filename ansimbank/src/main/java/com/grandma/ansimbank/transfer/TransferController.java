@@ -30,8 +30,7 @@ public class TransferController {
         // request에서 senderId를 인증된 사용자 ID로 설정
         request.setSenderId(authenticatedUserId);
         
-        log.info("송금 요청: 송금인ID={}, 송금액={}, 수취계좌={}", 
-                authenticatedUserId, request.getAmount(), request.getReceiverAccount());
+        log.info("송금 요청: 송금인ID={}, 송금액={}", authenticatedUserId, request.getAmount());
         
         TransferResponseDTO response = transferService.transfer(request);
         
@@ -43,7 +42,7 @@ public class TransferController {
             @RequestParam String accountNumber,
             @RequestParam String bankCode) {
         
-        log.info("계좌 유효성 검증 요청: 계좌번호={}, 은행코드={}", accountNumber, bankCode);
+        log.info("계좌 유효성 검증 요청: 은행코드={}", bankCode);
         
         String accountHolderName = "홍길동"; // 가상 예금주명
         
