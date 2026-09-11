@@ -5,7 +5,7 @@
 ### 가족이 함께 만드는 안전한 금융 경험
 
 음성 송금, 가족 연결, 송금 위임을 통해 디지털 금융이 낯선 사용자도
-안심하고 금융 서비스를 이용할 수 있도록 설계한 금융 해커톤 팀 프로젝트입니다.
+안심하고 금융 서비스를 이용할 수 있도록 설계한 **KB 해커톤 장려상 수상작**입니다.
 
 [![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -21,6 +21,12 @@
 ## 프로젝트 소개
 
 안심뱅크는 계좌 연동과 송금 기능에 가족 단위의 연결·위임 흐름을 결합한 금융 서비스입니다. Clova STT/TTS를 활용한 음성 인터페이스, CODEF 기반 계좌 조회, Firebase 알림과 STOMP 실시간 통신을 하나의 Spring Boot 서버에서 제공합니다.
+
+| 구분 | 내용 |
+| --- | --- |
+| 대회 | KB 해커톤 |
+| 성과 | 장려상 수상 |
+| 형태 | 팀 프로젝트 |
 
 ### 핵심 기능
 
